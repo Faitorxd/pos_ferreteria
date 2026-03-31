@@ -1,189 +1,175 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { createClient } from "@/utils/supabase/client";
-import { TrendingUp, DollarSign, Calendar, Filter, User } from "lucide-react";
+import Link from "next/link";
+import { ChevronDown, Star, HelpCircle, FileText, Lock } from "lucide-react";
 
-const supabase = createClient();
-
-export default function ReportesPage() {
-  const [sales, setSales] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  
-  // States para Filtros
-  const [employees, setEmployees] = useState<any[]>([]);
-  const [selectedEmployee, setSelectedEmployee] = useState<string>("all");
-  const [dateFilter, setDateFilter] = useState<string>("all"); // 'all', 'today', 'last_month'
-
-  // Cargar Empleados una vez
-  useEffect(() => {
-    supabase.from('profiles').select('*').then(({ data }) => {
-      if (data) setEmployees(data);
-    });
-  }, []);
-
-  // Cargar Ventas con Filtros
-  useEffect(() => {
-    setLoading(true);
-    let query = supabase.from('sales').select('*, profiles(email)').order('created_at', { ascending: false });
-    
-    // Aplicar Filtro de Empleado
-    if (selectedEmployee !== "all") {
-      query = query.eq('user_id', selectedEmployee);
+export default function ReportHubPage() {
+  const sections = [
+    {
+      title: "Ventas",
+      columns: [
+        {
+          title: "Ventas",
+          items: [
+            { name: "Ventas Siigo POS", link: "/reportes/ventas-pos", ready: true },
+            { name: "Ventas por vendedor", link: "#", ready: false },
+            { name: "Ventas por cliente", link: "#", ready: false },
+          ]
+        },
+        {
+          title: "Facturas y Recibos",
+          items: [
+             { name: "Listado de facturas electrónicas", link: "#", ready: false },
+             { name: "Recibos de caja detallado", link: "#", ready: false },
+          ]
+        }
+      ]
+    },
+    {
+      title: "Clientes y Proveedores",
+      columns: [
+        {
+          title: "Cuánto me deben (Clientes)",
+          items: [
+            { name: "Cuentas por cobrar general por cliente", link: "/cartera", ready: true },
+            { name: "Cuentas por cobrar detallada por documento", link: "#", ready: false },
+          ]
+        },
+        {
+          title: "Cuánto estoy debiendo (Proveedores)",
+          items: [
+            { name: "Cuentas por pagar general por proveedor", link: "/cuentas-pagar", ready: true },
+            { name: "Movimiento de cuentas por pagar", link: "#", ready: false },
+          ]
+        }
+      ]
+    },
+    {
+      title: "Compras y Gastos",
+      columns: [
+        {
+          title: "Adquisiciones",
+          items: [
+            { name: "Compras consolidadas por proveedor", link: "/reportes/compras-proveedor", ready: true },
+            { name: "Compras por producto", link: "#", ready: false },
+          ]
+        },
+        {
+          title: "Egresos",
+          items: [
+            { name: "Movimiento de gastos de Caja Menor", link: "/caja", ready: true },
+          ]
+        }
+      ]
+    },
+    {
+      title: "Productos y Servicios",
+      columns: [
+        {
+          title: "Saldos y movimientos",
+          items: [
+            { name: "Saldos de inventario (Kardex Físico y Costeo)", link: "/reportes/inventario-saldos", ready: true },
+            { name: "Saldos de productos bajo mínimo", link: "#", ready: false },
+          ]
+        },
+        {
+          title: "Rentabilidad",
+          items: [
+            { name: "Rentabilidad por producto / Utilidad", link: "#", ready: false }
+          ]
+        }
+      ]
+    },
+    {
+      title: "Contables y Financieros",
+      columns: [
+        {
+          title: "Tributario / Libros oficiales",
+          items: [
+            { name: "Libro de inventarios y balance", link: "#", ready: false },
+            { name: "Libro oficial de compras", link: "#", ready: false },
+            { name: "Libro Mayor y Balance", link: "#", ready: false },
+          ]
+        },
+        {
+          title: "Financieros",
+          items: [
+            { name: "Estado de situación financiera (Balance)", link: "#", ready: false },
+            { name: "Estado de resultado integral (PyG)", link: "#", ready: false },
+          ]
+        }
+      ]
     }
-    
-    // Aplicar Filtro de Fecha
-    if (dateFilter === 'today') {
-      const today = new Date().toISOString().split('T')[0];
-      query = query.gte('created_at', today + 'T00:00:00Z');
-    } else if (dateFilter === 'last_month') {
-      const date = new Date();
-      date.setMonth(date.getMonth() - 1);
-      date.setDate(1); // Primer día mes pasado
-      const firstDay = date.toISOString().split('T')[0];
-      
-      const lastDayDate = new Date();
-      lastDayDate.setDate(0); // Último día (el día '0' es el ultimo día del mes anterior)
-      const lastDay = lastDayDate.toISOString().split('T')[0];
-
-      query = query.gte('created_at', firstDay + 'T00:00:00Z').lte('created_at', lastDay + 'T23:59:59Z');
-    }
-
-    query.then(({ data }) => {
-      if (data) setSales(data);
-      setLoading(false);
-    });
-  }, [selectedEmployee, dateFilter]);
-
-  const totalRevenue = sales.reduce((sum, sale) => sum + Number(sale.total), 0);
+  ];
 
   return (
-    <div className="p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-black text-slate-800">Reportes de Ventas</h1>
-        <p className="text-slate-500 mt-2">Acceso Administrativo: Visualiza e inspecciona el historial con filtros.</p>
-      </div>
-
-      {/* Barra de Filtros Inteligente */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-wrap gap-4 mb-6">
-        <div className="flex items-center gap-2 text-slate-500 font-semibold px-2">
-          <Filter size={20} /> FILTROS:
+    <div className="p-8 h-full overflow-y-auto bg-slate-50/50">
+      
+      <div className="mb-8 flex items-center justify-between border-b border-slate-200 pb-4">
+        <div>
+          <h1 className="text-3xl font-black text-slate-800 flex items-center gap-3">
+             <FileText className="text-blue-500 w-8 h-8" />
+             Reportes 
+             <span className="bg-blue-100 text-blue-700 text-sm font-bold px-3 py-1 rounded-full uppercase tracking-wider ml-2 shadow-sm border border-blue-200">
+                PRO
+             </span>
+          </h1>
+          <p className="text-slate-500 mt-2 font-medium">Centro de Inteligencia de Negocios y Contabilidad Corporativa.</p>
         </div>
-        
-        {/* Filtro por Empleado/Usuario */}
-        <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
-          <User size={18} className="text-slate-400" />
-          <select 
-            value={selectedEmployee}
-            onChange={(e) => setSelectedEmployee(e.target.value)}
-            className="bg-transparent text-sm font-semibold text-slate-700 focus:outline-none"
-          >
-            <option value="all">Cualquier Empleado</option>
-            {employees.map(emp => (
-              <option key={emp.id} value={emp.id}>{emp.email} ({emp.role})</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Filtro Rápido de Fecha */}
-        <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg p-1">
-          <button 
-            onClick={() => setDateFilter('all')}
-            className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${dateFilter === 'all' ? 'bg-white shadow text-slate-800' : 'text-slate-500 hover:text-slate-700'}`}
-          >
-            Histórico Total
-          </button>
-          <button 
-            onClick={() => setDateFilter('today')}
-            className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${dateFilter === 'today' ? 'bg-white shadow text-blue-600' : 'text-slate-500 hover:text-slate-700'}`}
-          >
-            Solo Hoy
-          </button>
-          <button 
-            onClick={() => setDateFilter('last_month')}
-            className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all ${dateFilter === 'last_month' ? 'bg-white shadow text-purple-600' : 'text-slate-500 hover:text-slate-700'}`}
-          >
-            Mes Pasado
-          </button>
+        <div className="relative w-72">
+           <input type="text" placeholder="Buscar por:" className="w-full border-2 border-slate-200 rounded-lg pr-12 pl-4 py-2 focus:border-blue-500 outline-none" />
+           <div className="absolute right-0 top-0 bottom-0 bg-blue-500 w-12 rounded-r-lg flex items-center justify-center cursor-pointer">
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-4">
-          <div className="w-14 h-14 bg-green-100 text-green-600 rounded-xl flex items-center justify-center">
-            <DollarSign size={28} />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-slate-500">Ingresos (Según filtros)</p>
-            <h3 className="text-2xl font-black text-slate-900">
-              {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(totalRevenue)}
-            </h3>
-          </div>
-        </div>
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center gap-4">
-          <div className="w-14 h-14 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
-            <TrendingUp size={28} />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-slate-500">Ventas Registradas</p>
-            <h3 className="text-2xl font-black text-slate-900">{sales.length}</h3>
-          </div>
-        </div>
-      </div>
+      <div className="space-y-6">
+        {sections.map((section, idx) => (
+          <div key={idx} className="bg-white rounded-xl shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-slate-200 overflow-hidden break-inside-avoid">
+            {/* Header / Acordeón falso abierto */}
+            <div className="p-5 border-b border-slate-100 flex items-center gap-2 cursor-pointer hover:bg-slate-50 transition-colors">
+               <ChevronDown className="w-5 h-5 text-blue-500" />
+               <h2 className="text-lg font-black text-slate-800 tracking-tight">{section.title}</h2>
+            </div>
 
-      {/* Tabla de Resultados */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="p-5 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
-          <h3 className="font-bold text-slate-700 flex items-center gap-2">
-            <Calendar size={18} />
-            Desglose de Operaciones
-          </h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-white text-slate-500 text-sm border-b border-slate-100">
-                <th className="px-6 py-4 font-semibold">ID</th>
-                <th className="px-6 py-4 font-semibold">Cajero (Empleado)</th>
-                <th className="px-6 py-4 font-semibold">Fecha</th>
-                <th className="px-6 py-4 font-semibold">Método</th>
-                <th className="px-6 py-4 font-semibold">Estado</th>
-                <th className="px-6 py-4 font-semibold text-right">Total Cobrado</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {loading ? (
-                <tr><td colSpan={6} className="p-8 text-center text-slate-400">Consultando base de datos...</td></tr>
-              ) : sales.length === 0 ? (
-                <tr><td colSpan={6} className="p-8 text-center text-slate-400">No hay ventas que coincidan con los filtros aplicados.</td></tr>
-              ) : (
-                sales.map(sale => (
-                  <tr key={sale.id} className="hover:bg-slate-50">
-                    <td className="px-6 py-4 font-mono text-xs text-slate-400">{sale.id.slice(0, 8)}</td>
-                    <td className="px-6 py-4 font-bold text-blue-600 text-sm">
-                      {sale.profiles?.email || 'Desconocido'}
-                    </td>
-                    <td className="px-6 py-4 font-medium text-slate-700 whitespace-nowrap text-sm">
-                      {new Date(sale.created_at).toLocaleString()}
-                    </td>
-                    <td className="px-6 py-4 uppercase font-bold text-xs text-slate-500 tracking-wider">
-                      {sale.payment_method}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full font-bold text-xs bg-green-100 text-green-800">
-                        {sale.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-black text-right text-slate-900 border-l border-slate-50 bg-slate-50/50">
-                      {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(Number(sale.total))}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+            {/* Content grid */}
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+               {section.columns.map((col, colIdx) => (
+                 <div key={colIdx}>
+                    <h3 className="font-bold text-slate-700 mb-4">{col.title}</h3>
+                    <ul className="space-y-4">
+                       {col.items.map((item, idxi) => (
+                         <li key={idxi} className="flex items-center justify-between group">
+                            {item.ready ? (
+                               <Link href={item.link} className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors flex-1 cursor-pointer">
+                                  {item.name}
+                               </Link>
+                            ) : (
+                               <span className="text-sm font-medium text-slate-400 flex items-center gap-2 flex-1 cursor-not-allowed">
+                                  {item.name}
+                                  <Lock className="w-3 h-3 text-slate-300 inline" />
+                               </span>
+                            )}
+                            
+                            <div className="flex flex-shrink-0 items-center gap-3 ml-4 opacity-70 group-hover:opacity-100 transition-opacity">
+                               <button className="text-blue-400 hover:text-blue-600 transition-colors tooltip-trigger" title="Ayuda sobre este reporte">
+                                  <HelpCircle className="w-4 h-4" />
+                               </button>
+                               <button className="text-slate-300 hover:text-blue-500 transition-colors">
+                                  <Star className="w-4 h-4" />
+                               </button>
+                            </div>
+                         </li>
+                       ))}
+                    </ul>
+                 </div>
+               ))}
+            </div>
+          </div>
+        ))}
       </div>
+      
     </div>
   );
 }

@@ -14,6 +14,7 @@ export default function InventarioPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [branchId, setBranchId] = useState<string | null>(null);
   
   // Datos del nuevo producto
   const [newProduct, setNewProduct] = useState({
@@ -28,7 +29,19 @@ export default function InventarioPage() {
   const [imageUrl, setImageUrl] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
 
-  const fetchInventory = () => {
+  const fetchInventory = async () => {
+    // 1. Obtener el usuario activo y su sucursal (branch_id)
+    const { data: authData } = await supabase.auth.getUser();
+    if (authData?.user) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('branch_id')
+        .eq('id', authData.user.id)
+        .single();
+      if (profile?.branch_id) setBranchId(profile.branch_id);
+    }
+
+    // 2. Obtener productos (RLS ya filtra por sucursal automáticamente, pero las políticas devuelven solo lo permitido)
     supabase.from('products').select('*')
       .then(({ data }) => {
         if (data) setProducts(data);
@@ -109,13 +122,21 @@ export default function InventarioPage() {
       }
 
       // 2. Insertar o Actualizar Información en la BD
-      const productPayload = {
+      if (!branchId && !editingId) {
+        throw new Error("No se ha podido detectar a qué Sede perteneces. Recarga la página.");
+      }
+
+      const productPayload: any = {
         name: newProduct.name,
         barcode: newProduct.barcode || null,
         price: Number(newProduct.price),
         stock: Number(newProduct.stock),
         image_url: finalImageUrl
       };
+
+      if (!editingId) {
+        productPayload.branch_id = branchId;
+      }
 
       let dbError;
       if (editingId) {

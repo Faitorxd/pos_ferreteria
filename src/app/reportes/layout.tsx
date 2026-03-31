@@ -9,17 +9,8 @@ export default async function ReportesLayout({ children }: { children: React.Rea
     redirect("/login");
   }
 
-  // Verificar si es admin
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single();
-
-  if (profile?.role !== 'admin') {
-    // Si no es admin, no tiene autorización para ver reportes
-    redirect("/pos");
-  }
+  // No bloqueamos a empleados porque ellos pueden acceder para ver las ventas de su propia sede.
+  // La RLS de Supabase filtra qué datos devuelven basándose en su branch_id.
 
   return <>{children}</>;
 }
