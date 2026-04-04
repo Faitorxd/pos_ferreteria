@@ -19,7 +19,7 @@ export default function ReportHubPage() {
         {
           title: "Facturas y Recibos",
           items: [
-             { name: "Listado de facturas electrónicas", link: "#", ready: false },
+             { name: "Historial de Facturas (Detalle de ítems)", link: "/reportes/facturas", ready: true },
              { name: "Recibos de caja detallado", link: "#", ready: false },
           ]
         }
@@ -69,6 +69,7 @@ export default function ReportHubPage() {
           title: "Saldos y movimientos",
           items: [
             { name: "Saldos de inventario (Kardex Físico y Costeo)", link: "/reportes/inventario-saldos", ready: true },
+            { name: "Movimiento de Producto (Kardex Entradas/Salidas)", link: "/reportes/movimiento-producto", ready: true },
             { name: "Saldos de productos bajo mínimo", link: "#", ready: false },
           ]
         },

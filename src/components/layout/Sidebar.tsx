@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Copyleft as CashRegister, Search, FileText, LogOut, MapPin, Users, BookOpenCheck, Wallet, Truck, ShoppingCart, Building2 } from "lucide-react";
+import { Copyleft as CashRegister, Search, FileText, LogOut, MapPin, Users, BookOpenCheck, Wallet, Truck, ShoppingCart, Building2, Receipt, RefreshCw } from "lucide-react";
 import { logout } from "@/app/login/actions";
 import { createClient } from "@/utils/supabase/client";
 
@@ -96,6 +96,20 @@ export function Sidebar() {
         >
           <Wallet className="w-5 h-5 text-emerald-400" />
           <span className="text-emerald-50 font-semibold">Caja y Arqueo</span>
+        </Link>
+        <Link
+          href="/reportes/facturas"
+          className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors"
+        >
+          <Receipt className="w-5 h-5 text-yellow-400" />
+          <span className="text-yellow-50 font-semibold">Historial Facturas</span>
+        </Link>
+        <Link
+          href="/reportes/movimiento-producto"
+          className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-800 transition-colors"
+        >
+          <RefreshCw className="w-5 h-5 text-indigo-400" />
+          <span className="text-indigo-50 font-semibold">Movimiento Producto</span>
         </Link>
         <Link
           href="/reportes"
